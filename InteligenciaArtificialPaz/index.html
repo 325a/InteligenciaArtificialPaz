@@ -45,6 +45,7 @@
     </p>
 
     <h2>26/09/2024 - Parcial 1</h2>
+    <h3>PUNTO 3</h3>
 
     <h3 style="text-align:center;">Resultados de Búsqueda</h3>
 
@@ -75,6 +76,44 @@
             <td>319</td>
         </tr>
     </table>
+ <h3>PUNTO 4</h3>
+    
+# Importamos las bibliotecas
+import tensorflow as tf  # Para crear la red neuronal
+import numpy as np  # Para manejar arrays numéricos
+
+# Definimos los datos: temperaturas en Celsius y Fahrenheit
+celsius = np.array([-40, -10, 0, 8, 15, 22, 38], dtype=float)
+fahrenheit = np.array([-40, 14, 32, 46, 59, 72, 100], dtype=float)
+
+# Creamos el modelo de red neuronal con 2 capas ocultas (3 neuronas cada una) y 1 de salida
+oculta1 = tf.keras.layers.Dense(units=3, input_shape=[1])  # Primera capa oculta
+oculta2 = tf.keras.layers.Dense(units=3)  # Segunda capa oculta
+salida = tf.keras.layers.Dense(units=1)  # Capa de salida
+
+# Construimos el modelo secuencial
+modelo = tf.keras.Sequential([oculta1, oculta2, salida])
+
+# Compilamos el modelo con el optimizador Adam y función de pérdida de error cuadrático medio
+modelo.compile(optimizer=tf.keras.optimizers.Adam(0.1), loss='mean_squared_error')
+
+# Entrenamos el modelo con los datos por 1000 épocas
+historial = modelo.fit(celsius, fahrenheit, epochs=1000, verbose=False)
+
+# Realizamos una predicción para 100 grados Celsius
+resultado = modelo.predict([100.0])
+
+# Mostramos el resultado de la predicción
+print("El resultado es " + str(resultado) + " fahrenheit!")
+
+# Mostramos los pesos de las capas internas
+print("Pesos de las capas:")
+print(oculta1.get_weights())  # Pesos de la primera capa oculta
+print(oculta2.get_weights())  # Pesos de la segunda capa oculta
+print(salida.get_weights())  # Pesos de la capa de salida
+
+    
+    
 </body>
 </html>
 
