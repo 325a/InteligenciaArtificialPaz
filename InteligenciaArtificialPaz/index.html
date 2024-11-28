@@ -419,19 +419,19 @@ if __name__ == "__main__":
     </p>
 
 <h2>24/10/2024 - Parcial 2 - PUNTO 5</h2>
-        <p>crear una copia del repositorio en el escritorio de su computador (se explica al inicio del parcial). 
-            Dentro de la carpeta del repositorio AIdiurno comentar para que sirve el archivo logic.py 
-            (usando una inteligencia artificial) para demostrar para que sirve.
-            Subir los comentarios de este archivo al archivo index.html de su
-            repositorio personal de la materia en github, comparta el enlace de este repositorio, 
-            de tal manera que se visualice como página web.</p>
+        <p>
+            Crear una copia del repositorio en el escritorio de su computador (se explica al inicio del parcial).
+            Dentro de la carpeta del repositorio AIdiurno comentar para qué sirve el archivo <code>logic.py</code> 
+            (usando una inteligencia artificial) para demostrar para qué sirve. Subir los comentarios de este archivo al archivo 
+            <code>index.html</code> de su repositorio personal de la materia en GitHub, comparta el enlace de este repositorio, 
+            de tal manera que se visualice como página web.
+        </p>
 
-
-                        <P>
-                            import itertools
+        <pre><code>
+import itertools
 
 # Clase base para todas las oraciones lógicas
-class Sentence():
+class Sentence:
     def evaluate(self, model):
         """
         Evalúa la oración lógica.
@@ -513,145 +513,227 @@ class Symbol(Sentence):
 
     def symbols(self):
         return {self.name}  # Devuelve el símbolo como un conjunto.
+        </code></pre>
 
-# Clase para la operación lógica "Not" (Negación)
-class Not(Sentence):
-    def __init__(self, operand):
-        Sentence.validate(operand)  # Valida que el operando sea una instancia de Sentence.
-        self.operand = operand
+        <h2>28/11/2024 - Explicación del código Reto Laberinto</h2>
+        <pre><code>
+# Clase que representa un nodo en el grafo del laberinto
+class Node:
+    def __init__(self, state, parent, action):
+        # Estado actual (posición en el laberinto)
+        self.state = state
+        # Nodo padre (de dónde venimos)
+        self.parent = parent
+        # Acción que llevó al estado actual
+        self.action = action
 
-    def __eq__(self, other):
-        return isinstance(other, Not) and self.operand == other.operand  # Compara si dos objetos Not son iguales.
+# Clase que implementa una pila como frontera (LIFO)
+class StackFrontier:
+    def __init__(self):
+        # Inicializa la frontera como una lista vacía
+        self.frontier = []
 
-    def __hash__(self):
-        return hash(("not", hash(self.operand)))  # Devuelve un hash único para la negación.
+    def add(self, node):
+        # Agrega un nodo a la frontera
+        self.frontier.append(node)
 
-    def __repr__(self):
-        return f"Not({self.operand})"  # Representación de la negación como cadena.
+    def contains_state(self, state):
+        # Verifica si un estado ya está en la frontera
+        return any(node.state == state for node in self.frontier)
 
-    def evaluate(self, model):
-        """
-        Evalúa la negación de la oración.
-        """
-        return not self.operand.evaluate(model)
+    def empty(self):
+        # Comprueba si la frontera está vacía
+        return len(self.frontier) == 0
 
-    def formula(self):
-        return "¬" + Sentence.parenthesize(self.operand.formula())  # Devuelve la fórmula con negación.
+    def remove(self):
+        # Elimina el último nodo de la frontera
+        if self.empty():
+            raise Exception("empty frontier")
+        else:
+            node = self.frontier[-1]
+            self.frontier = self.frontier[:-1]
+            return node
+        </code></pre>
 
-    def symbols(self):
-        return self.operand.symbols()  # Devuelve los símbolos del operando.
+<h1>Explicación del Código Maze</h1>
+        <p>Este programa implementa un solucionador de laberintos utilizando diferentes estructuras de frontera como pilas y colas para explorar caminos. Aquí tienes el código completo con explicaciones:</p>
 
-# Clase para la operación lógica "And" (Conjunción)
-class And(Sentence):
-    def __init__(self, *conjuncts):
-        for conjunct in conjuncts:
-            Sentence.validate(conjunct)  # Valida que cada conjunción sea una instancia de Sentence.
-        self.conjuncts = list(conjuncts)
+        <h2>Clase <code>Node</code></h2>
+        <p>La clase <code>Node</code> representa un nodo en el grafo del laberinto. Cada nodo contiene:</p>
+        <ul>
+            <li><code>state</code>: El estado actual (posición).</li>
+            <li><code>parent</code>: El nodo padre desde donde llegamos al estado actual.</li>
+            <li><code>action</code>: La acción realizada para alcanzar el estado.</li>
+        </p>
+        <pre><code>
+class Node():
+    def __init__(self, state, parent, action):
+        self.state = state
+        self.parent = parent
+        self.action = action
+        </code></pre>
 
-    def __eq__(self, other):
-        return isinstance(other, And) and self.conjuncts == other.conjuncts  # Compara si dos objetos And son iguales.
+        <h2>Clase <code>StackFrontier</code></h2>
+        <p>La clase <code>StackFrontier</code> implementa una frontera usando una pila (LIFO). Contiene métodos para:</p>
+        <ul>
+            <li><code>add</code>: Agregar nodos a la frontera.</li>
+            <li><code>contains_state</code>: Verificar si un estado ya está en la frontera.</li>
+            <li><code>empty</code>: Comprobar si la frontera está vacía.</li>
+            <li><code>remove</code>: Eliminar el último nodo de la frontera.</li>
+        </ul>
+        <pre><code>
+class StackFrontier():
+    def __init__(self):
+        self.frontier = []
 
-    def __hash__(self):
-        return hash(("and", tuple(hash(conjunct) for conjunct in self.conjuncts)))  # Devuelve un hash único para la conjunción.
+    def add(self, node):
+        self.frontier.append(node)
 
-    def __repr__(self):
-        conjunctions = ", ".join([str(conjunct) for conjunct in self.conjuncts])
-        return f"And({conjunctions})"  # Representación de la conjunción como cadena.
+    def contains_state(self, state):
+        return any(node.state == state for node in self.frontier)
 
-    def add(self, conjunct):
-        Sentence.validate(conjunct)  # Valida el nuevo conjunción antes de añadirlo.
-        self.conjuncts.append(conjunct)
+    def empty(self):
+        return len(self.frontier) == 0
 
-    def evaluate(self, model):
-        """
-        Evalúa si todas las conjunciones son verdaderas.
-        """
-        return all(conjunct.evaluate(model) for conjunct in self.conjuncts)
+    def remove(self):
+        if self.empty():
+            raise Exception("empty frontier")
+        else:
+            node = self.frontier[-1]
+            self.frontier = self.frontier[:-1]
+            return node
+        </code></pre>
 
-    def formula(self):
-        if len(self.conjuncts) == 1:
-            return self.conjuncts[0].formula()  # Si hay una sola conjunción, devuelve su fórmula.
-        return " ∧ ".join([Sentence.parenthesize(conjunct.formula())
-                           for conjunct in self.conjuncts])  # Devuelve la fórmula con todas las conjunciones.
+        <h2>Clase <code>QueueFrontier</code></h2>
+        <p>La clase <code>QueueFrontier</code> extiende <code>StackFrontier</code> para implementar una cola (FIFO). Cambia el método <code>remove</code> para eliminar el primer nodo en lugar del último.</p>
+        <pre><code>
+class QueueFrontier(StackFrontier):
+    def remove(self):
+        if self.empty():
+            raise Exception("empty frontier")
+        else:
+            node = self.frontier[0]
+            self.frontier = self.frontier[1:]
+            return node
+        </code></pre>
 
-    def symbols(self):
-        return set.union(*[conjunct.symbols() for conjunct in self.conjuncts])  # Devuelve la unión de todos los símbolos en las conjunciones.
+        <h2>Clase <code>Maze</code></h2>
+        <p>La clase <code>Maze</code> gestiona el laberinto, incluyendo:</p>
+        <ul>
+            <li>Cargar el archivo del laberinto.</li>
+            <li>Identificar las paredes, el inicio (<code>A</code>) y el objetivo (<code>B</code>).</li>
+            <li>Resolver el laberinto utilizando estructuras de frontera.</li>
+        </ul>
 
-# Clase para la operación lógica "Or" (Disyunción)
-class Or(Sentence):
-    def __init__(self, *disjuncts):
-        for disjunct in disjuncts:
-            Sentence.validate(disjunct)  # Valida que cada disyunción sea una instancia de Sentence.
-        self.disjuncts = list(disjuncts)
+        <h3>Método <code>__init__</code></h3>
+        <p>Inicializa el laberinto leyendo un archivo y configurando las paredes, el inicio y el objetivo.</p>
+        <pre><code>
+class Maze():
+    def __init__(self, filename):
+        with open(filename) as f:
+            contents = f.read()
 
-    def __eq__(self, other):
-        return isinstance(other, Or) and self.disjuncts == other.disjuncts  # Compara si dos objetos Or son iguales.
+        if contents.count("A") != 1:
+            raise Exception("maze must have exactly one start point")
+        if contents.count("B") != 1:
+            raise Exception("maze must have exactly one goal")
 
-    def __hash__(self):
-        return hash(("or", tuple(hash(disjunct) for disjunct in self.disjuncts)))  # Devuelve un hash único para la disyunción.
+        contents = contents.splitlines()
+        self.height = len(contents)
+        self.width = max(len(line) for line in contents)
 
-    def __repr__(self):
-        disjuncts = ", ".join([str(disjunct) for disjunct in self.disjuncts])
-        return f"Or({disjuncts})"  # Representación de la disyunción como cadena.
+        self.walls = []
+        for i in range(self.height):
+            row = []
+            for j in range(self.width):
+                if contents[i][j] == "A":
+                    self.start = (i, j)
+                    row.append(False)
+                elif contents[i][j] == "B":
+                    self.goal = (i, j)
+                    row.append(False)
+                elif contents[i][j] == " ":
+                    row.append(False)
+                else:
+                    row.append(True)
+            self.walls.append(row)
+        self.solution = None
+        </code></pre>
 
-    def evaluate(self, model):
-        """
-        Evalúa si alguna de las disyunciones es verdadera.
-        """
-        return any(disjunct.evaluate(model) for disjunct in self.disjuncts)
+        <h3>Método <code>solve</code></h3>
+        <p>Encuentra una solución al laberinto si existe. Utiliza una frontera para explorar caminos posibles.</p>
+        <pre><code>
+    def solve(self):
+        self.num_explored = 0
+        start = Node(state=self.start, parent=None, action=None)
+        frontier = StackFrontier()
+        frontier.add(start)
+        self.explored = set()
 
-    def formula(self):
-        if len(self.disjuncts) == 1:
-            return self.disjuncts[0].formula()  # Si hay una sola disyunción, devuelve su fórmula.
-        return " ∨  ".join([Sentence.parenthesize(disjunct.formula())
-                            for disjunct in self.disjuncts])  # Devuelve la fórmula con todas las disyunciones.
+        while True:
+            if frontier.empty():
+                raise Exception("no solution")
 
-    def symbols(self):
-        return set.union(*[disjunct.symbols() for disjunct in self.disjuncts])  # Devuelve la unión de todos los símbolos en las disyunciones.
+            node = frontier.remove()
+            self.num_explored += 1
 
-# Clase para la operación lógica "Implication" (Implicación)
-class Implication(Sentence):
-    def __init__(self, antecedent, consequent):
-        Sentence.validate(antecedent)  # Valida que el antecedente sea una instancia de Sentence.
-        Sentence.validate(consequent)  # Valida que el consecuente sea una instancia de Sentence.
-        self.antecedent = antecedent
-        self.consequent = consequent
+            if node.state == self.goal:
+                actions = []
+                cells = []
+                while node.parent is not None:
+                    actions.append(node.action)
+                    cells.append(node.state)
+                    node = node.parent
+                actions.reverse()
+                cells.reverse()
+                self.solution = (actions, cells)
+                return
 
-    def __eq__(self, other):
-        return (isinstance(other, Implication)
-                and self.antecedent == other.antecedent
-                and self.consequent == other.consequent)  # Compara si dos objetos Implication son iguales.
+            self.explored.add(node.state)
+            for action, state in self.neighbors(node.state):
+                if not frontier.contains_state(state) and state not in self.explored:
+                    child = Node(state=state, parent=node, action=action)
+                    frontier.add(child)
+        </code></pre>
 
-    def __hash__(self):
-        return hash(("implies", hash(self.antecedent), hash(self.consequent)))  # Devuelve un hash único para la implicación.
+        <h3>Método <code>output_image</code></h3>
+        <p>Genera una imagen del laberinto con la solución marcada, si existe.</p>
+        <pre><code>
+    def output_image(self, filename, show_solution=True, show_explored=False):
+        from PIL import Image, ImageDraw
+        cell_size = 50
+        cell_border = 2
+        img = Image.new("RGBA", (self.width * cell_size, self.height * cell_size), "black")
+        draw = ImageDraw.Draw(img)
 
-    def __repr__(self):
-        return f"Implication({self.antecedent}, {self.consequent})"  # Representación de la implicación como cadena.
+        solution = self.solution[1] if self.solution is not None else None
+        for i, row in enumerate(self.walls):
+            for j, col in enumerate(row):
+                if col:
+                    fill = (40, 40, 40)
+                elif (i, j) == self.start:
+                    fill = (255, 0, 0)
+                elif (i, j) == self.goal:
+                    fill = (0, 171, 28)
+                elif solution is not None and show_solution and (i, j) in solution:
+                    fill = (220, 235, 113)
+                else:
+                    fill = (237, 240, 252)
 
-    def evaluate(self, model):
-        """
-        Evalúa la implicación lógica.
-        """
-        return ((not self.antecedent.evaluate(model))
-                or self.consequent.evaluate(model))  # Devuelve verdadero si el antecedente es falso o el consecuente es verdadero.
-
-    def formula(self):
-        antecedent = Sentence.parenthesize(self.antecedent.formula())
-        consequent = Sentence.parenthesize(self.consequent.formula())
-        return f"{antecedent} => {consequent}"  # Devuelve la fórmula de la implicación.
-
-    def symbols(self):
-        return set.union(self.antecedent.symbols(), self.consequent.symbols())  # Devuelve la unión de todos los símbolos en el antecedente y el consecuente.
-
-# Clase
-                        </P>
-                            
-
-
-        
+                draw.rectangle(
+                    ([(j * cell_size + cell_border, i * cell_size + cell_border),
+                      ((j + 1) * cell_size - cell_border, (i + 1) * cell_size - cell_border)]),
+                    fill=fill
+                )
+        img.save(filename)
+        </code></pre>
+    </div>
+</body>
+</html>
 
                         
     
 </body>
 </html>
+
 
